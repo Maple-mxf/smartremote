@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/descriptor.proto";
+
+message SelfDescribingMessage {
+  // Set of FileDescriptorProtos which describe the type and its dependencies.
+  google.protobuf.FileDescriptorSet descriptor_set = 1;
+
+  // The message and its type, encoded as an Any message.
+  google.protobuf.Any message = 2;
+}
