@@ -9,7 +9,7 @@ import smartremote.protocol.RemoteCmd;
 import java.nio.ByteBuffer;
 
 @ChannelHandler.Sharable
-public class JsonEncoder extends MessageToByteEncoder<RemoteCmd> {
+public class CmdEncoder extends MessageToByteEncoder<RemoteCmd> {
 
   @Override
   public void encode(ChannelHandlerContext ctx, RemoteCmd remoteCmd, ByteBuf out) {

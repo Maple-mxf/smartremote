@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+@Deprecated
 public abstract class RemoteSerializable {
 
   private static final Charset CHARSET_UTF8 = StandardCharsets.UTF_8;

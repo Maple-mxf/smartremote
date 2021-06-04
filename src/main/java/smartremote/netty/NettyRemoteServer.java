@@ -40,7 +40,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class NettyRemoteServer extends NettyRemotingAbstract implements RemoteServer {
+public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServer {
 
   private static final Logger log = LoggerFactory.getLogger(NettyRemoteServer.class);
   private final ServerBootstrap serverBootstrap;
@@ -62,7 +62,7 @@ public class NettyRemoteServer extends NettyRemotingAbstract implements RemoteSe
 
   // sharable handlers
   private HandshakeHandler handshakeHandler;
-  private JsonEncoder encoder;
+  private CmdEncoder encoder;
   private NettyConnectManageHandler connectionManageHandler;
   private NettyServerHandler serverHandler;
 
@@ -170,7 +170,7 @@ public class NettyRemoteServer extends NettyRemotingAbstract implements RemoteSe
                         .addLast(
                             defaultEventExecutorGroup,
                             encoder,
-                            new JsonDecoder(),
+                            new CmdDecoder(),
                             new IdleStateHandler(
                                 0, 0, serverCfg.getServerChannelMaxIdleTimeSeconds()),
                             connectionManageHandler,
@@ -300,7 +300,7 @@ public class NettyRemoteServer extends NettyRemotingAbstract implements RemoteSe
 
   private void prepareSharableHandlers() {
     handshakeHandler = new HandshakeHandler(TlsSystemConfig.tlsMode);
-    encoder = new JsonEncoder();
+    encoder = new CmdEncoder();
     connectionManageHandler = new NettyConnectManageHandler();
     serverHandler = new NettyServerHandler();
   }
@@ -384,7 +384,7 @@ public class NettyRemoteServer extends NettyRemotingAbstract implements RemoteSe
   class NettyServerHandler extends SimpleChannelInboundHandler<RemoteCmd> {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, RemoteCmd msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, RemoteCmd msg) {
       processMessageReceived(ctx, msg);
     }
   }

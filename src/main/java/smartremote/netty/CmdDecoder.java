@@ -7,12 +7,12 @@ import smartremote.protocol.RemoteCmd;
 
 import java.nio.ByteBuffer;
 
-public class JsonDecoder extends LengthFieldBasedFrameDecoder {
+public class CmdDecoder extends LengthFieldBasedFrameDecoder {
 
   private static final int FRAME_MAX_LENGTH =
       Integer.parseInt(System.getProperty("restdoc.frameMaxLength", "16777216"));
 
-  public JsonDecoder() {
+  public CmdDecoder() {
     super(FRAME_MAX_LENGTH, 0, 4, 0, 4);
   }
 

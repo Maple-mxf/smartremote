@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class NettyRemoteClient extends NettyRemotingAbstract implements RemoteClient {
+public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClient {
 
   private static final Logger log = LoggerFactory.getLogger(NettyRemoteClient.class);
 
@@ -164,8 +164,8 @@ public class NettyRemoteClient extends NettyRemotingAbstract implements RemoteCl
                     }
                     pipeline.addLast(
                         defaultEventExecutorGroup,
-                        new JsonEncoder(),
-                        new JsonDecoder(),
+                        new CmdEncoder(),
+                        new CmdDecoder(),
                         new IdleStateHandler(
                             0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()),
                         new NettyConnectManageHandler(),
@@ -440,13 +440,13 @@ public class NettyRemoteClient extends NettyRemotingAbstract implements RemoteCl
     final Channel channel = this.getAndCreateChannel(addr);
     if (channel != null && channel.isActive()) {
       try {
-        doBeforeRpcHooks(addr, request);
+        runBeforeRpcHooks(addr, request);
         long costTime = System.currentTimeMillis() - beginStartTime;
         if (timeoutMillis < costTime) {
           throw new RemoteTimeoutException("invokeSync call timeout");
         }
         RemoteCmd response = this.invokeSyncImpl(channel, request, timeoutMillis - costTime);
-        doAfterRpcHooks(RemoteHelper.parseChannelRemoteAddr(channel), request, response);
+        runAfterRpcHooks(RemoteHelper.parseChannelRemoteAddr(channel), request, response);
         return response;
       } catch (RemoteSendRequestException e) {
         log.warn("invokeSync: send request exception, so close the channel[{}]", addr);
@@ -613,7 +613,7 @@ public class NettyRemoteClient extends NettyRemotingAbstract implements RemoteCl
     final Channel channel = this.getAndCreateChannel(addr);
     if (channel != null && channel.isActive()) {
       try {
-        doBeforeRpcHooks(addr, request);
+        runBeforeRpcHooks(addr, request);
         long costTime = System.currentTimeMillis() - beginStartTime;
         if (timeoutMillis < costTime) {
           throw new RemoteTooMuchRequestException("invokeAsync call timeout");
@@ -637,7 +637,7 @@ public class NettyRemoteClient extends NettyRemotingAbstract implements RemoteCl
     final Channel channel = this.getAndCreateChannel(addr);
     if (channel != null && channel.isActive()) {
       try {
-        doBeforeRpcHooks(addr, request);
+        runBeforeRpcHooks(addr, request);
         this.invokeOnewayImpl(channel, request, timeoutMillis);
       } catch (RemoteSendRequestException e) {
         log.warn("invokeOneway: send request exception, so close the channel[{}]", addr);

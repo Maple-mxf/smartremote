@@ -3,6 +3,8 @@ package smartremote.netty;
 import io.netty.channel.Channel;
 import smartremote.protocol.RemoteCmd;
 
+import java.util.Objects;
+
 public class RequestTask implements Runnable {
   private final Runnable runnable;
   private final long createTimestamp = System.currentTimeMillis();
@@ -10,8 +12,7 @@ public class RequestTask implements Runnable {
   private final RemoteCmd request;
   private boolean stopRun = false;
 
-  public RequestTask(
-      final Runnable runnable, final Channel channel, final RemoteCmd request) {
+  public RequestTask(final Runnable runnable, final Channel channel, final RemoteCmd request) {
     this.runnable = runnable;
     this.channel = channel;
     this.request = request;
@@ -36,7 +37,7 @@ public class RequestTask implements Runnable {
 
     if (getCreateTimestamp() != that.getCreateTimestamp()) return false;
     if (isStopRun() != that.isStopRun()) return false;
-    if (channel != null ? !channel.equals(that.channel) : that.channel != null) return false;
+    if (!Objects.equals(channel, that.channel)) return false;
     return request != null ? request.getOpaque() == that.request.getOpaque() : that.request == null;
   }
 
@@ -58,7 +59,7 @@ public class RequestTask implements Runnable {
   }
 
   public void returnResponse(int code, String remark) {
-    final RemoteCmd response = RemoteCmd.createResponseCmd(code, remark);
+    final RemoteCmd response = RemoteCmd.newResponse(code, remark);
     response.setOpaque(request.getOpaque());
     this.channel.writeAndFlush(response);
   }

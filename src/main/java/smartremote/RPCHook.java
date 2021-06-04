@@ -4,8 +4,8 @@ import smartremote.protocol.RemoteCmd;
 
 public interface RPCHook {
 
-  void doBeforeRequest(final String remoteAddr, final RemoteCmd request);
+  void runBeforeRequest(final String remoteAddr, final RemoteCmd request);
 
-  void doAfterResponse(
+  void runAfterResponse(
           final String remoteAddr, final RemoteCmd request, final RemoteCmd response);
 }

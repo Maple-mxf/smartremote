@@ -51,12 +51,8 @@ public class RemoteHelper {
     SocketChannel socketChannel = RemotingUtil.connect(socketAddress);
     if (socketChannel != null) {
       boolean sendRequestOK = false;
-
       try {
-
         socketChannel.configureBlocking(true);
-
-        // bugfix  http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4614802
         socketChannel.socket().setSoTimeout((int) timeoutMillis);
 
         ByteBuffer byteBufferRequest = request.encode();
