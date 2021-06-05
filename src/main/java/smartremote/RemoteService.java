@@ -8,5 +8,5 @@ public interface RemoteService {
 
   void shutdown();
 
-  void registerRPCHook(RPCHook rpcHook);
+  void addRPCHook(RPCHook rpcHook);
 }

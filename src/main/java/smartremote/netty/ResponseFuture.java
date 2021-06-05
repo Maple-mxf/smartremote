@@ -53,8 +53,7 @@ public class ResponseFuture {
   }
 
   public boolean isTimeout() {
-    long diff = System.currentTimeMillis() - this.beginTimestamp;
-    return diff > this.timeoutMillis;
+    return (System.currentTimeMillis() - this.beginTimestamp) > this.timeoutMillis;
   }
 
   public RemoteCmd waitResponse(final long timeoutMillis) throws InterruptedException {
@@ -62,8 +61,8 @@ public class ResponseFuture {
     return this.response;
   }
 
-  public void putResponse(final RemoteCmd responseCommand) {
-    this.response = responseCommand;
+  public void putResponse(final RemoteCmd response) {
+    this.response = response;
     this.countDownLatch.countDown();
   }
 

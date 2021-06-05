@@ -18,6 +18,7 @@ import smartremote.common.Pair;
 import smartremote.common.RemoteHelper;
 import smartremote.common.RemotingUtil;
 import smartremote.common.TlsMode;
+import smartremote.errors.RemoteException;
 import smartremote.protocol.RemoteCmd;
 import smartremote.protocol.SerializeType;
 import smartremote.ChannelEventListener;
@@ -94,13 +95,12 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
 
     int publicThreadNums = serverCfg.getServerCallbackExecutorThreads();
 
-    if (serializeType == null) {
+    if (serializeType == null)
       throw new IllegalArgumentException("Illegal serializeType require not null");
-    }
-    if (publicThreadNums <= 0) {
+
+    if (publicThreadNums <= 0)
       throw new IllegalArgumentException(
           String.format("Illegal publicThreadNums: %d, must be gt zero", publicThreadNums));
-    }
 
     this.publicExecutor =
         Executors.newFixedThreadPool(publicThreadNums, tf.apply("NettyServerPublicExecutor_%d"));
@@ -233,7 +233,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
   }
 
   @Override
-  public void registerRPCHook(RPCHook rpcHook) {
+  public void addRPCHook(RPCHook rpcHook) {
     if (rpcHook != null && !rpcHooks.contains(rpcHook)) {
       rpcHooks.add(rpcHook);
     }
@@ -268,24 +268,24 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
 
   @Override
   public RemoteCmd invokeSync(
-          final Channel channel, final RemoteCmd request, final long timeoutMillis)
-      throws InterruptedException, RemoteSendRequestException, RemoteTimeoutException {
-    return this.invokeSyncImpl(channel, request, timeoutMillis);
+      final Channel channel, final RemoteCmd request, final long timeoutMillis)
+      throws InterruptedException, RemoteException {
+    return this.syncCall(channel, request, timeoutMillis);
   }
 
   @Override
   public void invokeAsync(
-          Channel channel, RemoteCmd request, long timeoutMillis, InvokeCallback invokeCallback)
+      Channel channel, RemoteCmd request, long timeoutMillis, InvokeCallback invokeCallback)
       throws InterruptedException, RemoteTooMuchRequestException, RemoteTimeoutException,
           RemoteSendRequestException {
-    this.invokeAsyncImpl(channel, request, timeoutMillis, invokeCallback);
+    this.asyncCall(channel, request, timeoutMillis, invokeCallback);
   }
 
   @Override
   public void invokeOneway(Channel channel, RemoteCmd request, long timeoutMillis)
       throws InterruptedException, RemoteTooMuchRequestException, RemoteTimeoutException,
           RemoteSendRequestException {
-    this.invokeOnewayImpl(channel, request, timeoutMillis);
+    this.onewayCall(channel, request, timeoutMillis);
   }
 
   @Override

@@ -2,6 +2,7 @@ package smartremote;
 
 import io.netty.channel.Channel;
 import smartremote.common.Pair;
+import smartremote.errors.RemoteException;
 import smartremote.errors.RemoteTimeoutException;
 import smartremote.netty.NettyRequestProcessor;
 import smartremote.protocol.RemoteCmd;
@@ -24,7 +25,7 @@ public interface RemoteServer extends RemoteService {
 
   RemoteCmd invokeSync(
           final Channel channel, final RemoteCmd request, final long timeoutMillis)
-      throws InterruptedException, RemoteSendRequestException, RemoteTimeoutException;
+          throws InterruptedException, RemoteException;
 
   void invokeAsync(
       final Channel channel,

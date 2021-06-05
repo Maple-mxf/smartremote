@@ -16,7 +16,7 @@ public interface RemoteClient extends RemoteService {
 
   List<String> getNameServerAddressList();
 
-  RemoteCmd invokeSync(
+  RemoteCmd syncCall(
           final String addr, final RemoteCmd request, final long timeoutMillis)
       throws InterruptedException, RemoteConnectException, RemoteSendRequestException,
           RemoteTimeoutException;
