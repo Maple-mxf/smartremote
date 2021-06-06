@@ -51,6 +51,7 @@ dependencies {
     implementation(group = "com.google.protobuf", name = "protobuf-java", version = "3.15.8")
     implementation(group = "org.projectlombok", name = "lombok", version = "1.18.20")
     implementation(group = "com.google.guava", name = "guava", version = "29.0-jre")
+    implementation("org.jetbrains:annotations:19.0.0")
 
     testImplementation(group = "org.mockito", name = "mockito-core", version = "3.3.3")
     testImplementation(group = "junit", name = "junit", version = "4.12")

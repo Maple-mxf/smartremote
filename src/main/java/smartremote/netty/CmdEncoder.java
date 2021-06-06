@@ -12,14 +12,9 @@ import java.nio.ByteBuffer;
 public class CmdEncoder extends MessageToByteEncoder<RemoteCmd> {
 
   @Override
-  public void encode(ChannelHandlerContext ctx, RemoteCmd remoteCmd, ByteBuf out) {
+  public void encode(ChannelHandlerContext ctx, RemoteCmd cmd, ByteBuf out) {
     try {
-      ByteBuffer header = remoteCmd.encodeHeader();
-      out.writeBytes(header);
-      byte[] body = remoteCmd.getBody();
-      if (body != null) {
-        out.writeBytes(body);
-      }
+      out.writeBytes(RemoteCmd.encode0(cmd));
     } catch (Exception e) {
       e.printStackTrace();
     }

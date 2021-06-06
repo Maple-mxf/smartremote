@@ -1,5 +1,7 @@
 package smartremote.protocol;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.Data;
 import smartremote.CmdHeader;
 import java.lang.reflect.Field;
@@ -8,32 +10,37 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// ===============Header===============
+// index     desc            max length   default
+// [0.4) :   body length     int32          no default value
+// [4,8) :   request code    int32          no default value
+// [8,9) :   cmd type        byte           1
+// [9,10):   rpc type        byte8          1
+// [10,11):  serialize type  byte8          1
+// [11,15):  msg type        int32         -1
+
 @Data
 public class RemoteCmd {
 
-  private static final int RPC_TYPE = 0;
-  private static final int RPC_ONEWAY = 1;
-  private static final Map<Class<? extends CmdHeader>, Field[]> CLASS_HASH_MAP = new HashMap<>();
-  private static final Map<Class, String> CANONICAL_NAME_CACHE = new HashMap<>();
-  private static final Map<Field, Boolean> NULLABLE_FIELD_CACHE = new HashMap<>();
+  @Deprecated private static final int RPC_TYPE = 0;
+  @Deprecated private static final int RPC_ONEWAY = 1;
+
   private static final AtomicInteger REQUEST_ID = new AtomicInteger(0);
-  private static SerializeType serializeTypeConfigInThisServer = SerializeType.PROTOBUF;
 
   private int code;
-  private int opaque = REQUEST_ID.getAndIncrement();
   private int flag = 0;
-  private String remark;
-  private HashMap<String, String> extFields;
-  private transient CmdHeader header;
-  private SerializeType serializeTypeCurrentRPC = serializeTypeConfigInThisServer;
+  private int rpcType = RpcType.SYNC.getType();
+  private SerializeType serializeType = SerializeType.PROTOBUF;
   private transient byte[] body;
+  private int msgType = -1;
+  private int opaque = REQUEST_ID.getAndIncrement();
+  private transient Object msgValue;
 
   protected RemoteCmd() {}
 
-  public static RemoteCmd newRequest(int code, CmdHeader customHeader) {
+  public static RemoteCmd newRequest(int code) {
     RemoteCmd cmd = new RemoteCmd();
     cmd.setCode(code);
-    cmd.header = customHeader;
     return cmd;
   }
 
@@ -45,15 +52,7 @@ public class RemoteCmd {
       int code, String remark, Class<? extends CmdHeader> classHeader) {
     RemoteCmd cmd = new RemoteCmd();
     cmd.setCode(code);
-    cmd.setRemark(remark);
 
-    if (classHeader != null) {
-      try {
-        cmd.header = classHeader.newInstance();
-      } catch (InstantiationException | IllegalAccessException e) {
-        return null;
-      }
-    }
     return cmd;
   }
 
@@ -65,15 +64,49 @@ public class RemoteCmd {
     return decode(ByteBuffer.wrap(array));
   }
 
-  public static RemoteCmd decode(final ByteBuffer buf) {
+  public static RemoteCmd decode0(final ByteBuf buf) {
+    int bufLen;
+    if ((bufLen = buf.readableBytes()) < 14) return null;
+
+    buf.markReaderIndex();
+    int bodyLen = buf.readInt();
+    if (bufLen < 14 + bodyLen) {
+      buf.resetReaderIndex();
+      return null;
+    }
+
+    int requestCode = buf.readInt() /*& 0xff*/;
+    byte cmdType = buf.readByte();
+    byte rpcType = buf.readByte();
+    byte serializeType = buf.readByte();
+    int msgType = buf.readInt();
+    byte[] body = buf.readBytes(bodyLen).array();
+
+    RemoteCmd cmd = new RemoteCmd();
+    cmd.body = body;
+    cmd.serializeType = SerializeType.valueOf(serializeType);
+    cmd.flag = cmdType;
+    cmd.code = requestCode;
+    cmd.msgType = msgType;
+    cmd.rpcType = rpcType;
+
+    return cmd;
+  }
+
+  public static ByteBuf encode0(final RemoteCmd cmd) {
+    return null;
+  }
+
+  public static RemoteCmd decode(final java.nio.ByteBuffer buf) {
     int len = buf.limit();
-    int oriHeaderLen = buf.getInt();
-    int headerLen = getHeaderLength(oriHeaderLen);
+    int originHeaderLen = buf.getInt();
+    int headerLen = getHeaderLength(originHeaderLen);
 
     byte[] header = new byte[headerLen];
     buf.get(header);
 
-    RemoteCmd cmd = decodeHeader(header, getProtocolType(oriHeaderLen));
+    RemoteCmd cmd = decodeHeader(header, getProtocolType(originHeaderLen));
+    if (cmd == null) return null;
 
     int bodyLen = len - 4 - headerLen;
     byte[] body = null;
@@ -94,7 +127,7 @@ public class RemoteCmd {
     switch (type) {
       case JSON:
         RemoteCmd cmd = RemoteSerializable.decode(headerData, RemoteCmd.class);
-        cmd.setSerializeTypeCurrentRPC(type);
+        cmd.setSerializeType(type);
         return cmd;
       default:
         break;
@@ -107,12 +140,13 @@ public class RemoteCmd {
     return SerializeType.valueOf((byte) ((source >> 24) & 0xFF));
   }
 
+  @Deprecated
   public ByteBuffer encode() {
     return null;
   }
 
+  @Deprecated
   public ByteBuffer encodeHeader() {
-
     return null;
   }
 

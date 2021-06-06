@@ -5,12 +5,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import smartremote.protocol.RemoteCmd;
 
-import java.nio.ByteBuffer;
-
 public class CmdDecoder extends LengthFieldBasedFrameDecoder {
 
   private static final int FRAME_MAX_LENGTH =
-      Integer.parseInt(System.getProperty("restdoc.frameMaxLength", "16777216"));
+      Integer.parseInt(System.getProperty("frameMaxLength", "16777216"));
 
   public CmdDecoder() {
     super(FRAME_MAX_LENGTH, 0, 4, 0, 4);
@@ -20,16 +18,12 @@ public class CmdDecoder extends LengthFieldBasedFrameDecoder {
   protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
     ByteBuf frame = null;
     try {
-      frame = (ByteBuf) super.decode(ctx, in);
-      if (null == frame) return null;
-      ByteBuffer byteBuffer = frame.nioBuffer();
-      return RemoteCmd.decode(byteBuffer);
+      if ((frame = (ByteBuf) super.decode(ctx, in)) == null) return null;
+      return RemoteCmd.decode0(frame);
     } catch (Exception e) {
       ctx.close();
     } finally {
-      if (null != frame) {
-        frame.release();
-      }
+      if (null != frame) frame.release();
     }
     return null;
   }

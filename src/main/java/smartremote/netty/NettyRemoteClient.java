@@ -7,8 +7,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smartremote.RemoteClient;
@@ -44,7 +42,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
 
   private final EventLoopGroup eventLoopGroupWorker;
 
-  private final Lock lockChannelTables = new ReentrantLock();
+  private final Lock channelTableLock = new ReentrantLock();
 
   private final ConcurrentMap<String, ChannelWrapper> channelTables = new ConcurrentHashMap<>();
 
@@ -70,19 +68,8 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
 
   private volatile Channel channel;
 
-  private final Function<String, ThreadFactory> tf =
-      fmtString ->
-          new ThreadFactory() {
-            private final AtomicInteger threadIndex = new AtomicInteger(0);
-
-            @Override
-            public Thread newThread(Runnable runnable) {
-              return new Thread(runnable, String.format(fmtString, threadIndex));
-            }
-          };
-
-  public NettyRemoteClient(final NettyClientConfig nettyClientConfig) {
-    this(nettyClientConfig, null);
+  public NettyRemoteClient(final NettyClientConfig clientCfg) {
+    this(clientCfg, null);
   }
 
   public NettyRemoteClient(
@@ -97,6 +84,16 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
     if ((publicThreadNums = clientCfg.getClientCallbackExecutorThreads()) <= 0)
       throw new IllegalArgumentException("publicThreadNums must be gt zero. ");
 
+    Function<String, ThreadFactory> tf =
+        fmtString ->
+            new ThreadFactory() {
+              private final AtomicInteger threadIndex = new AtomicInteger(0);
+
+              @Override
+              public Thread newThread(Runnable runnable) {
+                return new Thread(runnable, String.format(fmtString, threadIndex));
+              }
+            };
     this.publicExecutor =
         Executors.newFixedThreadPool(publicThreadNums, tf.apply("NettyClientPublicExecutor_%s"));
 
@@ -141,6 +138,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
                           sslContext.newHandler(ch.alloc()));
                       log.info("Prepend SSL handler");
                     }
+
                     pipeline.addLast(
                         defaultEventExecutorGroup,
                         new CmdEncoder(),
@@ -162,7 +160,6 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
   public void start() throws RemoteException {
     synchronized (this) {
       try {
-
         connect();
         this.timer.scheduleAtFixedRate(
             new TimerTask() {
@@ -195,7 +192,6 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
         f -> {
           if (!f.isSuccess()) {
             if (f.cause() != null) f.cause().printStackTrace();
-
             Channel newChannel = future.channel();
             Channel oldChannel = NettyRemoteClient.this.channel;
             if (oldChannel != null) {
@@ -249,9 +245,8 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
       this.eventLoopGroupWorker.shutdownGracefully();
       this.nettyEventExecutor.shutdown();
 
-      if (this.defaultEventExecutorGroup != null) {
+      if (this.defaultEventExecutorGroup != null)
         this.defaultEventExecutorGroup.shutdownGracefully();
-      }
     } catch (Exception e) {
       log.error("NettyRemotingClient shutdown exception, ", e);
     }
@@ -271,7 +266,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
     final String addrRemote = null == addr ? RemoteHelper.parseChannelRemoteAddr(channel) : addr;
 
     try {
-      if (this.lockChannelTables.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+      if (this.channelTableLock.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
         try {
           boolean removeItemFromTable = true;
           final ChannelWrapper prevCW = this.channelTables.get(addrRemote);
@@ -301,7 +296,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
         } catch (Exception e) {
           log.error("closeChannel: close the channel exception", e);
         } finally {
-          this.lockChannelTables.unlock();
+          this.channelTableLock.unlock();
         }
       } else {
         log.warn("closeChannel: try to lock channel table, but timeout, {}ms", LOCK_TIMEOUT_MILLIS);
@@ -322,7 +317,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
     if (null == channel) return;
 
     try {
-      if (this.lockChannelTables.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+      if (this.channelTableLock.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
         try {
           boolean removeItemFromTable = true;
           ChannelWrapper prevCW = null;
@@ -354,7 +349,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
         } catch (Exception e) {
           log.error("closeChannel: close the channel exception", e);
         } finally {
-          this.lockChannelTables.unlock();
+          this.channelTableLock.unlock();
         }
       } else {
         log.warn("closeChannel: try to lock channel table, but timeout, {}ms", LOCK_TIMEOUT_MILLIS);
@@ -410,12 +405,10 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
         RemoteCmd response = this.syncCall(channel, request, timeoutMillis - costTime);
         runAfterRpcHooks(RemoteHelper.parseChannelRemoteAddr(channel), request, response);
         return response;
-
       } catch (RemoteSendRequestException e) {
         log.warn("syncCall: send request exception, so close the channel[{}]", addr);
         this.closeChannel(addr, channel);
         throw e;
-
       } catch (RemoteTimeoutException e) {
         if (nettyClientConfig.isClientCloseSocketIfTimeout()) {
           this.closeChannel(addr, channel);
@@ -508,7 +501,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
       return cw.getChannel();
     }
 
-    if (this.lockChannelTables.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+    if (this.channelTableLock.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
       try {
         boolean createNewConnection;
         cw = this.channelTables.get(addr);
@@ -536,7 +529,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
       } catch (Exception e) {
         log.error("createChannel: create channel exception", e);
       } finally {
-        this.lockChannelTables.unlock();
+        this.channelTableLock.unlock();
       }
     } else {
       log.warn("createChannel: try to lock channel table, but timeout, {}ms", LOCK_TIMEOUT_MILLIS);

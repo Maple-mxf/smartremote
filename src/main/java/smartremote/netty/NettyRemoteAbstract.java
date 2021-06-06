@@ -4,7 +4,6 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import smartremote.ChannelEventListener;
@@ -51,18 +50,8 @@ public abstract class NettyRemoteAbstract {
 
   protected volatile SslContext sslContext;
 
-  @Deprecated protected List<RPCHook> rpcHooks = new ArrayList<>();
+  protected List<RPCHook> rpcHooks = new ArrayList<>();
 
-  protected List<RPCHook> beforeRPCHooks = new ArrayList<>();
-
-  protected List<RPCHook> afterRPCHooks = new ArrayList<>();
-
-  /**
-   * Constructor, specifying capacity of one-way and asynchronous semaphores.
-   *
-   * @param permitsOneway Number of permits for one-way requests.
-   * @param permitsAsync Number of permits for asynchronous requests.
-   */
   public NettyRemoteAbstract(final int permitsOneway, final int permitsAsync) {
     this.semaphoreOneway = new Semaphore(permitsOneway, true);
     this.semaphoreAsync = new Semaphore(permitsAsync, true);
@@ -86,11 +75,11 @@ public abstract class NettyRemoteAbstract {
   }
 
   protected void runBeforeRpcHooks(String addr, RemoteCmd request) {
-    beforeRPCHooks.forEach(hook -> hook.runBeforeRequest(addr, request));
+    rpcHooks.forEach(hook -> hook.runBeforeRequest(addr, request));
   }
 
   protected void runAfterRpcHooks(String addr, RemoteCmd request, RemoteCmd response) {
-    afterRPCHooks.forEach(hook -> hook.runAfterResponse(addr, request, response));
+    rpcHooks.forEach(hook -> hook.runAfterResponse(addr, request, response));
   }
 
   public void processRequestCmd(final ChannelHandlerContext ctx, final RemoteCmd cmd) {
