@@ -45,6 +45,7 @@ tasks.withType<Jar> {
 
 dependencies {
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
+    implementation(group = "ch.qos.logback", name = "logback-core", version = "1.1.7")
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-core", version = "2.11.0")
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.11.0")
     implementation(group = "io.netty", name = "netty-all", version = "4.1.50.Final")
@@ -55,4 +56,7 @@ dependencies {
 
     testImplementation(group = "org.mockito", name = "mockito-core", version = "3.3.3")
     testImplementation(group = "junit", name = "junit", version = "4.12")
+
+    annotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
+    testAnnotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
 }
