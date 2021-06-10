@@ -21,6 +21,7 @@ public class CmdDecoder extends LengthFieldBasedFrameDecoder {
       if ((frame = (ByteBuf) super.decode(ctx, in)) == null) return null;
       return RemoteCmd.decode0(frame);
     } catch (Exception e) {
+      e.printStackTrace();
       ctx.close();
       return null;
     } finally {

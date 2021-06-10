@@ -91,7 +91,7 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
 
               @Override
               public Thread newThread(Runnable runnable) {
-                return new Thread(runnable, String.format(fmtString, threadIndex));
+                return new Thread(runnable, String.format(fmtString, threadIndex.getAndIncrement()));
               }
             };
     this.publicExecutor =

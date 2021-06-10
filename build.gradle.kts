@@ -18,7 +18,7 @@ publishing {
 nexusPublishing {
     repositories {
         sonatype()
-        create("smart-remote-nexus") {
+        this.create("smart-remote-nexus") {
             nexusUrl.set(uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/"))
             snapshotRepositoryUrl.set(uri("https://oss.sonatype.org/content/repositories/snapshots"))
             username.set("NEXUS_USER")
