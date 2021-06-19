@@ -25,7 +25,7 @@ public class RemoteServiceTest {
   private RemoteClient client;
 
   private final String host = "127.0.0.1";
-  private final int port = 8090;
+  private final int port = 8080;
 
   @Before
   public void init() throws RemoteException, InterruptedException {
@@ -54,7 +54,7 @@ public class RemoteServiceTest {
             new ChannelEventListener() {
               @Override
               public void onChannelConnect(String remoteAddr, Channel channel) {
-                System.err.println("connected .... ");
+                System.err.printf(" channel will be create,  remote address : %s%n ", remoteAddr);
               }
             });
 
@@ -66,7 +66,7 @@ public class RemoteServiceTest {
             new ProtoMsgDefinition(
                 2, ChatMessage.ChatResponse.class, ChatMessage.ChatResponse::getDefaultInstance));
 
-    server.registerProcessor(
+    server.registerHandler(
         1,
         (ctx, request) -> {
           ChatMessage.ChatRequest chatRequest = request.mapToObj();
@@ -87,13 +87,14 @@ public class RemoteServiceTest {
   public void testStartServer() throws RemoteException, InterruptedException {
     server.start();
 
+
     Thread.sleep(10000000);
   }
 
   @Test
   public void testSendChatRequest()
       throws InterruptedException, RemoteSendRequestException, RemoteConnectException,
-          RemoteTimeoutException {
+      RemoteTimeoutException {
 
     ChatMessage.ChatRequest msg =
         ChatMessage.ChatRequest.newBuilder()
@@ -105,6 +106,6 @@ public class RemoteServiceTest {
     RemoteCmd cmd = RemoteCmd.newRequest(1);
     cmd.setBody(msg.toByteArray());
 
-    client.syncCall(String.format("%s:%d", host, port), cmd, 3000L);
+    client.syncCall(String.format("%s:%d", host, port), cmd, 300000L);
   }
 }

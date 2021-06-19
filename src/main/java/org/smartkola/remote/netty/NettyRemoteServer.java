@@ -63,7 +63,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
 
   // sharable handlers
   private HandshakeHandler handshakeHandler;
-  private CmdEncoder encoder;
+  private RemoteCmdEncoder encoder;
   private NettyConnectManageHandler connectionManageHandler;
   private NettyServerHandler serverHandler;
 
@@ -170,7 +170,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
                         .addLast(
                             defaultEventExecutorGroup,
                             encoder,
-                            new CmdDecoder(),
+                            new RemoteCmdDecoder(),
                             new IdleStateHandler(
                                 0, 0, serverCfg.getServerChannelMaxIdleTimeSeconds()),
                             connectionManageHandler,
@@ -208,7 +208,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
         1000 * 3,
         1000);
 
-    log.info("TCP server started, port:[{}]",this.port);
+    log.info("TCP server started, port:[{}]", this.port);
   }
 
   @Override
@@ -242,19 +242,19 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
   }
 
   @Override
-  public void registerProcessor(
-      int requestCode, NettyRequestProcessor processor, ExecutorService executor) {
+  public void registerHandler(
+      int requestCode, Handler processor, ExecutorService executor) {
     ExecutorService executorThis = executor;
     if (null == executor) {
       executorThis = this.publicExecutor;
     }
 
-    Pair<NettyRequestProcessor, ExecutorService> pair = new Pair<>(processor, executorThis);
+    Pair<Handler, ExecutorService> pair = new Pair<>(processor, executorThis);
     this.processorTable.put(requestCode, pair);
   }
 
   @Override
-  public void registerDefaultProcessor(NettyRequestProcessor processor, ExecutorService executor) {
+  public void registerDefaultHandler(Handler processor, ExecutorService executor) {
     this.defaultRequestProcessor = new Pair<>(processor, executor);
   }
 
@@ -264,7 +264,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
   }
 
   @Override
-  public Pair<NettyRequestProcessor, ExecutorService> getProcessorPair(int requestCode) {
+  public Pair<Handler, ExecutorService> getProcessorPair(int requestCode) {
     return processorTable.get(requestCode);
   }
 
@@ -279,14 +279,14 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
   public void invokeAsync(
       Channel channel, RemoteCmd request, long timeoutMillis, InvokeCallback invokeCallback)
       throws InterruptedException, RemoteTooMuchRequestException, RemoteTimeoutException,
-          RemoteSendRequestException {
+      RemoteSendRequestException {
     this.asyncCall(channel, request, timeoutMillis, invokeCallback);
   }
 
   @Override
   public void invokeOneway(Channel channel, RemoteCmd request, long timeoutMillis)
       throws InterruptedException, RemoteTooMuchRequestException, RemoteTimeoutException,
-          RemoteSendRequestException {
+      RemoteSendRequestException {
     this.onewayCall(channel, request, timeoutMillis);
   }
 
@@ -302,7 +302,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
 
   private void prepareSharableHandlers() {
     handshakeHandler = new HandshakeHandler(TlsSystemConfig.tlsMode);
-    encoder = new CmdEncoder();
+    encoder = new RemoteCmdEncoder();
     connectionManageHandler = new NettyConnectManageHandler();
     serverHandler = new NettyServerHandler();
   }
@@ -332,8 +332,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
           case DISABLED:
             ctx.close();
             log.warn(
-                "Clients intend to establish an SSL connection while this server is running in SSL"
-                    + " disabled mode");
+                "Clients intend to establish an SSL connection while this server is running in SSL disabled mode");
             break;
           case PERMISSIVE:
           case ENFORCING:

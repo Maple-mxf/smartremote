@@ -43,6 +43,13 @@ tasks.withType<Jar> {
     from(tasks["javadoc"])
 }
 
+tasks.test{
+    useJUnit()
+
+    maxHeapSize = "1G"
+    maxParallelForks = 3
+}
+
 dependencies {
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
     implementation(group = "ch.qos.logback", name = "logback-core", version = "1.1.7")

@@ -4,7 +4,7 @@ import org.smartkola.remote.errors.RemoteConnectException;
 import org.smartkola.remote.errors.RemoteSendRequestException;
 import org.smartkola.remote.errors.RemoteTimeoutException;
 import org.smartkola.remote.errors.RemoteTooMuchRequestException;
-import org.smartkola.remote.netty.NettyRequestProcessor;
+import org.smartkola.remote.netty.Handler;
 import org.smartkola.remote.protocol.RemoteCmd;
 
 import java.util.List;
@@ -34,7 +34,7 @@ public interface RemoteClient extends RemoteService {
           RemoteTimeoutException, RemoteSendRequestException;
 
   void registerProcessor(
-          final int requestCode, final NettyRequestProcessor processor, final ExecutorService executor);
+      final int requestCode, final Handler processor, final ExecutorService executor);
 
   void setCallbackExecutor(final ExecutorService callbackExecutor);
 

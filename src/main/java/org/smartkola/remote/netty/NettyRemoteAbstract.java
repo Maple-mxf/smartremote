@@ -39,12 +39,12 @@ public abstract class NettyRemoteAbstract {
   protected final ConcurrentMap<Integer, ResponseFuture> responseTable =
       new ConcurrentHashMap<>(256);
 
-  protected final HashMap<Integer /* request code */, Pair<NettyRequestProcessor, ExecutorService>>
+  protected final HashMap<Integer /* request code */, Pair<Handler, ExecutorService>>
       processorTable = new HashMap<>(64);
 
   protected final NettyEventExecutor nettyEventExecutor = new NettyEventExecutor();
 
-  protected Pair<NettyRequestProcessor, ExecutorService> defaultRequestProcessor;
+  protected Pair<Handler, ExecutorService> defaultRequestProcessor;
 
   protected volatile SslContext sslContext;
 
@@ -82,10 +82,10 @@ public abstract class NettyRemoteAbstract {
 
   public void processRequestCmd(final ChannelHandlerContext ctx, final RemoteCmd cmd) {
 
-    final Pair<NettyRequestProcessor, ExecutorService> endpointProcessor =
+    final Pair<Handler, ExecutorService> endpointProcessor =
         this.processorTable.get(cmd.getCode());
 
-    final Pair<NettyRequestProcessor, ExecutorService> pair =
+    final Pair<Handler, ExecutorService> pair =
         null == endpointProcessor ? this.defaultRequestProcessor : endpointProcessor;
 
     final int opaque = cmd.getOpaque();
@@ -129,12 +129,12 @@ public abstract class NettyRemoteAbstract {
                   }
                 };
 
-            if (pair.getLeft() instanceof AsyncNettyRequestProcessor) {
-              AsyncNettyRequestProcessor processor = (AsyncNettyRequestProcessor) pair.getLeft();
+            if (pair.getLeft() instanceof AsyncHandler) {
+              AsyncHandler processor = (AsyncHandler) pair.getLeft();
               processor.asyncProcessRequest(ctx, cmd, callback);
             } else {
-              NettyRequestProcessor processor = pair.getLeft();
-              RemoteCmd response = processor.processRequest(ctx, cmd);
+              Handler processor = pair.getLeft();
+              RemoteCmd response = processor.hand(ctx, cmd);
               callback.call(response);
             }
           } catch (Throwable e) {

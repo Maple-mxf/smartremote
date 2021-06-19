@@ -141,11 +141,11 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
 
                     pipeline.addLast(
                         defaultEventExecutorGroup,
-                        new CmdEncoder(),
-                        new CmdDecoder(),
+                        new RemoteCmdEncoder(),
+                        new RemoteCmdDecoder(),
                         new IdleStateHandler(0, 0, clientCfg.getClientChannelMaxIdleTimeSeconds()),
                         new NettyConnectManageHandler(),
-                        new ReconnectHandler(NettyRemoteClient.this),
+//                        new ReconnectHandler(NettyRemoteClient.this),
                         new NettyClientHandler());
                   }
                 });
@@ -610,13 +610,13 @@ public class NettyRemoteClient extends NettyRemoteAbstract implements RemoteClie
 
   @Override
   public void registerProcessor(
-      int requestCode, NettyRequestProcessor processor, ExecutorService executor) {
+      int requestCode, Handler processor, ExecutorService executor) {
     ExecutorService executorThis = executor;
     if (null == executor) {
       executorThis = this.publicExecutor;
     }
 
-    Pair<NettyRequestProcessor, ExecutorService> pair = new Pair<>(processor, executorThis);
+    Pair<Handler, ExecutorService> pair = new Pair<>(processor, executorThis);
     this.processorTable.put(requestCode, pair);
   }
 
