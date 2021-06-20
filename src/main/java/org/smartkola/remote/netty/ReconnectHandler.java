@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit;
 @ChannelHandler.Sharable
 public class ReconnectHandler extends ChannelInboundHandlerAdapter {
 
-  private final NettyRemoteClient remotingClient;
+  private final DefaultRemoteClientImpl remotingClient;
 
-  public ReconnectHandler(NettyRemoteClient remotingClient) {
+  public ReconnectHandler(DefaultRemoteClientImpl remotingClient) {
     this.remotingClient = remotingClient;
   }
 

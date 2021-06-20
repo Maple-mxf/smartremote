@@ -12,16 +12,17 @@ import java.util.concurrent.ExecutorService;
 
 public interface RemoteClient extends RemoteService {
 
+  @Deprecated
   void updateNameServerAddressList(final List<String> addrs);
 
+  @Deprecated
   List<String> getNameServerAddressList();
 
-  RemoteCmd syncCall(
-          final String addr, final RemoteCmd request, final long timeoutMillis)
+  RemoteCmd syncCall(final String address, final RemoteCmd request, final long timeoutMillis)
       throws InterruptedException, RemoteConnectException, RemoteSendRequestException,
           RemoteTimeoutException;
 
-  void invokeAsync(
+  void asyncCall(
       final String addr,
       final RemoteCmd request,
       final long timeoutMillis,
@@ -29,16 +30,16 @@ public interface RemoteClient extends RemoteService {
       throws InterruptedException, RemoteConnectException, RemoteTooMuchRequestException,
           RemoteTimeoutException, RemoteSendRequestException;
 
-  void invokeOneway(final String addr, final RemoteCmd request, final long timeoutMillis)
+  void onewayCall(final String addr, final RemoteCmd request, final long timeoutMillis)
       throws InterruptedException, RemoteConnectException, RemoteTooMuchRequestException,
           RemoteTimeoutException, RemoteSendRequestException;
 
-  void registerProcessor(
-      final int requestCode, final Handler processor, final ExecutorService executor);
+  void registerHandler(
+      final int requestCode, final Handler handler, final ExecutorService executor);
 
   void setCallbackExecutor(final ExecutorService callbackExecutor);
 
   ExecutorService getCallbackExecutor();
 
-  boolean isChannelWritable(final String addr);
+  boolean isChannelWritable(final String address);
 }

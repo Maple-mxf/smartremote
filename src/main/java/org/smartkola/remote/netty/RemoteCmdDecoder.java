@@ -11,10 +11,7 @@ public class RemoteCmdDecoder extends MessageToMessageDecoder<ByteBuf> {
 
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
-    RemoteCmd cmd = RemoteCmd.decode0(msg);
-    if (cmd != null) {
-      out.add(cmd);
-      System.err.println(cmd);
-    }
+    RemoteCmd cmd = RemoteCmd.decode(msg);
+    out.add(cmd);
   }
 }

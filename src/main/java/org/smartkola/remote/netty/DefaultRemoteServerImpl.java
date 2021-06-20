@@ -24,7 +24,6 @@ import org.smartkola.remote.protocol.SerializeType;
 import org.smartkola.remote.ChannelEventListener;
 import org.smartkola.remote.InvokeCallback;
 import org.smartkola.remote.RPCHook;
-import org.smartkola.remote.RemoteServer;
 import org.smartkola.remote.errors.RemoteSendRequestException;
 import org.smartkola.remote.errors.RemoteTimeoutException;
 import org.smartkola.remote.errors.RemoteTooMuchRequestException;
@@ -41,9 +40,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServer {
+public class DefaultRemoteServerImpl extends RemoteAbstract implements org.smartkola.remote.RemoteServer {
 
-  private static final Logger log = LoggerFactory.getLogger(NettyRemoteServer.class);
+  private static final Logger log = LoggerFactory.getLogger(DefaultRemoteServerImpl.class);
   private final ServerBootstrap serverBootstrap;
   private final EventLoopGroup eventLoopGroupSelector;
   private final EventLoopGroup eventLoopGroupBoss;
@@ -80,11 +79,11 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
             }
           };
 
-  public NettyRemoteServer(final NettyServerConfig serverCfg) {
+  public DefaultRemoteServerImpl(final NettyServerConfig serverCfg) {
     this(serverCfg, null);
   }
 
-  public NettyRemoteServer(
+  public DefaultRemoteServerImpl(
       final NettyServerConfig serverCfg, final ChannelEventListener channelEventListener) {
     super(serverCfg.getServerOnewaySemaphoreValue(), serverCfg.getServerAsyncSemaphoreValue());
 
@@ -199,7 +198,7 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
           @Override
           public void run() {
             try {
-              NettyRemoteServer.this.scanResponseTable();
+              DefaultRemoteServerImpl.this.scanResponseTable();
             } catch (Throwable e) {
               log.error("scanResponseTable exception", e);
             }
@@ -412,8 +411,8 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
       log.info("NETTY SERVER PIPELINE: channelActive, the channel[{}]", remoteAddress);
       super.channelActive(ctx);
 
-      if (NettyRemoteServer.this.channelEventListener != null) {
-        NettyRemoteServer.this.putNettyEvent(
+      if (DefaultRemoteServerImpl.this.channelEventListener != null) {
+        DefaultRemoteServerImpl.this.putNettyEvent(
             new NettyEvent(NettyEventType.CONNECT, remoteAddress, ctx.channel()));
       }
     }
@@ -424,8 +423,8 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
       log.info("NETTY SERVER PIPELINE: channelInactive, the channel[{}]", remoteAddress);
       super.channelInactive(ctx);
 
-      if (NettyRemoteServer.this.channelEventListener != null) {
-        NettyRemoteServer.this.putNettyEvent(
+      if (DefaultRemoteServerImpl.this.channelEventListener != null) {
+        DefaultRemoteServerImpl.this.putNettyEvent(
             new NettyEvent(NettyEventType.CLOSE, remoteAddress, ctx.channel()));
       }
     }
@@ -441,8 +440,8 @@ public class NettyRemoteServer extends NettyRemoteAbstract implements RemoteServ
       log.warn("NETTY SERVER PIPELINE: exceptionCaught {}", remoteAddress);
       log.warn("NETTY SERVER PIPELINE: exceptionCaught exception.", cause);
 
-      if (NettyRemoteServer.this.channelEventListener != null) {
-        NettyRemoteServer.this.putNettyEvent(
+      if (DefaultRemoteServerImpl.this.channelEventListener != null) {
+        DefaultRemoteServerImpl.this.putNettyEvent(
             new NettyExceptionEvent(NettyEventType.EXCEPTION, remoteAddress, ctx.channel(), cause));
       }
 
