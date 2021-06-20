@@ -2,11 +2,14 @@ package org.smartkola.remote.netty;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.channel.Channel;
+import lombok.SneakyThrows;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.smartkola.remote.ChannelEventListener;
+import org.smartkola.remote.InvokeCallback;
 import org.smartkola.remote.errors.RemoteException;
 import org.smartkola.remote.protobuf.ProtoMsgDefinition;
 import org.smartkola.remote.protobuf.ProtoMsgDefinitionTable;
@@ -27,8 +30,20 @@ public class RemoteServiceTest {
   private final int chatResponseMsgType = 2;
 
   @Before
-  public void init() {
+  public void init() throws InterruptedException {
     initMsgType();
+    new Thread(
+            () -> {
+              try {
+                startServer();
+              } catch (RemoteException | InterruptedException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
+              }
+            })
+        .start();
+
+    Thread.sleep(3000L);
   }
 
   public void initMsgType() {
@@ -88,8 +103,7 @@ public class RemoteServiceTest {
         Executors.newSingleThreadExecutor());
   }
 
-  @Test
-  public void testStartServer() throws RemoteException, InterruptedException {
+  public void startServer() throws RemoteException, InterruptedException {
     initServer();
     server.start();
 
@@ -98,7 +112,7 @@ public class RemoteServiceTest {
   }
 
   @Test
-  public void testSendChatRequest()
+  public void testSyncCall()
       throws InterruptedException, RemoteException, InvalidProtocolBufferException {
     initClient();
 
@@ -112,8 +126,63 @@ public class RemoteServiceTest {
     cmd.setMsgType(chatRequestMsgType);
     cmd.setBody(msg.toByteArray());
 
-    RemoteCmd response = client.syncCall(String.format("%s:%d", host, port), cmd, 300000L);
-    Object o = (Object) response.encodeToObj();
-    System.err.println(o);
+    RemoteCmd remoteCmd = client.syncCall(String.format("%s:%d", host, port), cmd, 300000L);
+    ChatMessage.ChatResponse response = remoteCmd.encodeToObj();
+
+    Assert.assertEquals(response.getErrorCode(), "succ");
+  }
+
+  @Test
+  public void testOnewayCall() throws RemoteException, InterruptedException {
+    initClient();
+
+    ChatMessage.ChatRequest msg =
+        ChatMessage.ChatRequest.newBuilder()
+            .setSendBy("voyagerma")
+            .setTime(new Date().getTime())
+            .setValue("hello world")
+            .build();
+
+    RemoteCmd cmd = RemoteCmd.newRequest(1);
+    cmd.setMsgType(chatRequestMsgType);
+    cmd.setBody(msg.toByteArray());
+
+    client.onewayCall(String.format("%s:%d", host, port), cmd, 30000L);
+
+    Thread.sleep(30000L);
+  }
+
+  @Test
+  public void testAsyncCall() throws RemoteException, InterruptedException {
+    initClient();
+
+    ChatMessage.ChatRequest msg =
+        ChatMessage.ChatRequest.newBuilder()
+            .setSendBy("voyagerma")
+            .setTime(new Date().getTime())
+            .setValue("hello world")
+            .build();
+
+    RemoteCmd cmd = RemoteCmd.newRequest(1);
+    cmd.setMsgType(chatRequestMsgType);
+    cmd.setBody(msg.toByteArray());
+
+    client.asyncCall(
+        String.format("%s:%d", host, port),
+        cmd,
+        4000L,
+        new InvokeCallback() {
+          @SneakyThrows
+          @Override
+          public void operationComplete(ResponseFuture future) throws InterruptedException {
+            RemoteCmd remoteCmd = future.getResponse();
+
+            ChatMessage.ChatResponse response = remoteCmd.encodeToObj();
+            log.info("response: {} ", response);
+            Assert.assertEquals(response.getErrorCode(), "succ");
+          }
+        });
+
+    Thread.sleep(10000L);
   }
 }

@@ -1,7 +1,6 @@
 package org.smartkola.remote.protocol;
 
 public enum RpcType {
-
   ONEWAY((byte) 0),
   ASYNC((byte) 1),
   SYNC((byte) 2),

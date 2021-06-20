@@ -1,7 +1,9 @@
 package org.smartkola.remote.netty;
 
 import io.netty.channel.Channel;
+import lombok.Data;
 
+@Data
 public class NettyEvent {
 
   private final NettyEventType type;
@@ -12,18 +14,6 @@ public class NettyEvent {
     this.type = type;
     this.remoteAddr = remoteAddr;
     this.channel = channel;
-  }
-
-  public NettyEventType getType() {
-    return type;
-  }
-
-  public String getRemoteAddr() {
-    return remoteAddr;
-  }
-
-  public Channel getChannel() {
-    return channel;
   }
 
   @Override

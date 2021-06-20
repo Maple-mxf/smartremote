@@ -438,7 +438,7 @@ public class DefaultRemoteServerImpl extends RemoteAbstract implements org.smart
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
       final String remoteAddress = RemoteHelper.parseChannelRemoteAddr(ctx.channel());
       log.warn("NETTY SERVER PIPELINE: exceptionCaught {}", remoteAddress);
-      log.warn("NETTY SERVER PIPELINE: exceptionCaught exception.", cause);
+      log.warn("NETTY SERVER PIPELINE: exceptionCaught exception {}", cause.getMessage());
 
       if (DefaultRemoteServerImpl.this.channelEventListener != null) {
         DefaultRemoteServerImpl.this.putNettyEvent(

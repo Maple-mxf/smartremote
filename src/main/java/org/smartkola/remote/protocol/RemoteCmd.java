@@ -126,8 +126,7 @@ public class RemoteCmd {
 
   public boolean isResponseType() {
     int bits = 1 << RPC_TYPE;
-    boolean isResp = (this.flag & bits) == bits;
-    return isResp;
+    return (this.flag & bits) == bits;
   }
 
   public <T> T encodeToObj() throws InvalidProtocolBufferException {
