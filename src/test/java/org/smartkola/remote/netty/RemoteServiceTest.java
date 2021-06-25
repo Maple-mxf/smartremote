@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.smartkola.remote.ChannelEventListener;
 import org.smartkola.remote.InvokeCallback;
 import org.smartkola.remote.errors.RemoteException;
-import org.smartkola.remote.protobuf.ProtoMsgDefinition;
-import org.smartkola.remote.protobuf.ProtoMsgDefinitionTable;
+import org.smartkola.remote.protobuf.MsgDefinition;
+import org.smartkola.remote.protobuf.MsgDefinitionTable;
 import org.smartkola.remote.protocol.RemoteCmd;
 import org.smartkola.remote.protocol.SerializeType;
 
@@ -47,14 +47,14 @@ public class RemoteServiceTest {
   }
 
   public void initMsgType() {
-    ProtoMsgDefinitionTable.getInstance()
+    MsgDefinitionTable.getInstance()
         .addMsgDefinition(
-            new ProtoMsgDefinition(
+            new MsgDefinition(
                 chatRequestMsgType,
                 ChatMessage.ChatRequest.class,
                 ChatMessage.ChatRequest::getDefaultInstance))
         .addMsgDefinition(
-            new ProtoMsgDefinition(
+            new MsgDefinition(
                 chatResponseMsgType,
                 ChatMessage.ChatResponse.class,
                 ChatMessage.ChatResponse::getDefaultInstance));

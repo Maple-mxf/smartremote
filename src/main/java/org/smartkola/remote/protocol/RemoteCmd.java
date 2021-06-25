@@ -6,7 +6,7 @@ import com.google.protobuf.MessageLite;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.Data;
-import org.smartkola.remote.protobuf.ProtoMsgDefinitionTable;
+import org.smartkola.remote.protobuf.MsgDefinitionTable;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -133,7 +133,7 @@ public class RemoteCmd {
     Object obj = null;
     if (serializeType == SerializeType.PROTOBUF) {
       MessageLite ml =
-          ProtoMsgDefinitionTable.getInstance().getDefinitions().stream()
+          MsgDefinitionTable.getInstance().getDefinitions().stream()
               .filter(t -> t.getMark() == this.msgType)
               .findFirst()
               .orElseThrow(

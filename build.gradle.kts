@@ -4,6 +4,7 @@ version = "1.0"
 plugins {
     java
     `maven-publish`
+    `java-library`
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
@@ -67,4 +68,15 @@ dependencies {
 
     annotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
     testAnnotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
+}
+
+java {
+//    withJavadocJar()
+//    withSourcesJar()
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
 }
