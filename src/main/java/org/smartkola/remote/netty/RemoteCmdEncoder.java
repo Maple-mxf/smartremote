@@ -7,12 +7,12 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import org.smartkola.remote.protocol.RemoteCmd;
 
 @ChannelHandler.Sharable
-public class CmdEncoder extends MessageToByteEncoder<RemoteCmd> {
+public class RemoteCmdEncoder extends MessageToByteEncoder<RemoteCmd> {
 
   @Override
   public void encode(ChannelHandlerContext ctx, RemoteCmd cmd, ByteBuf out) {
     try {
-      out.writeBytes(RemoteCmd.encode0(cmd));
+      out.writeBytes(RemoteCmd.encode(cmd));
     } catch (Exception e) {
       e.printStackTrace();
     }

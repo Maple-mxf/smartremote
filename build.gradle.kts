@@ -1,9 +1,10 @@
-group = "org.smartremote"
+group = "org.smartkola.remote"
 version = "1.0"
 
 plugins {
     java
     `maven-publish`
+    `java-library`
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
@@ -43,9 +44,17 @@ tasks.withType<Jar> {
     from(tasks["javadoc"])
 }
 
+tasks.test {
+    useJUnit()
+
+    maxHeapSize = "1G"
+    maxParallelForks = 3
+}
+
 dependencies {
     implementation(group = "org.slf4j", name = "slf4j-api", version = "1.7.30")
     implementation(group = "ch.qos.logback", name = "logback-core", version = "1.1.7")
+    implementation(group = "ch.qos.logback", name = "logback-classic", version = "1.1.7")
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-core", version = "2.11.0")
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.11.0")
     implementation(group = "io.netty", name = "netty-all", version = "4.1.50.Final")
@@ -59,4 +68,15 @@ dependencies {
 
     annotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
     testAnnotationProcessor(group = "org.projectlombok", name = "lombok", version = "1.18.20")
+}
+
+java {
+//    withJavadocJar()
+//    withSourcesJar()
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
+//    toolchain {
+//        languageVersion.set(JavaLanguageVersion.of(8))
+//    }
 }
