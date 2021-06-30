@@ -71,7 +71,9 @@ public class RemoteCmd {
     byte rpcType = buf.readByte();
     byte serializeType = buf.readByte();
     int msgType = buf.readInt();
-    byte[] body = buf.readBytes(bodyLen).array();
+
+    byte[] body = new byte[bodyLen];
+    buf.readBytes(bodyLen).readBytes(body);
 
     RemoteCmd cmd = new RemoteCmd();
     cmd.body = body;

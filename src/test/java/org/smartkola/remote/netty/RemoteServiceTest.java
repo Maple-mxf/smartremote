@@ -103,7 +103,9 @@ public class RemoteServiceTest {
             .build();
 
     RemoteCmd cmd = RemoteCmd.newRequest(1);
-    cmd.setBody(msg.toByteArray());
+    byte[] bytes = msg.toByteArray();
+    System.err.printf("msg len : %d%n", bytes.length);
+    cmd.setBody(bytes);
 
     client.syncCall(String.format("%s:%d", host, port), cmd, 3000L);
   }
