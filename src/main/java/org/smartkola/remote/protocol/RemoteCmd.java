@@ -42,15 +42,17 @@ public class RemoteCmd {
 
   protected RemoteCmd() {}
 
-  public static RemoteCmd newRequest(int code) {
+  public static RemoteCmd newRequest(int code, int msgType, byte[] body) {
     RemoteCmd cmd = new RemoteCmd();
-    cmd.setCode(code);
+    cmd.code = code;
+    cmd.msgType = msgType;
+    cmd.body = body;
     return cmd;
   }
 
   public static RemoteCmd newResponse(int code) {
     RemoteCmd cmd = new RemoteCmd();
-    cmd.setCode(code);
+    cmd.code = code;
     cmd.flag = 1;
 
     return cmd;

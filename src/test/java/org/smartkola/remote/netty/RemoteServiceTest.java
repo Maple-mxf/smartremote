@@ -122,9 +122,7 @@ public class RemoteServiceTest {
             .setTime(new Date().getTime())
             .setValue("hello world")
             .build();
-    RemoteCmd cmd = RemoteCmd.newRequest(1);
-    cmd.setMsgType(chatRequestMsgType);
-    cmd.setBody(msg.toByteArray());
+    RemoteCmd cmd = RemoteCmd.newRequest(1, chatRequestMsgType, msg.toByteArray());
 
     RemoteCmd remoteCmd = client.syncCall(String.format("%s:%d", host, port), cmd, 300000L);
     ChatMessage.ChatResponse response = remoteCmd.encodeToObj();
@@ -143,9 +141,7 @@ public class RemoteServiceTest {
             .setValue("hello world")
             .build();
 
-    RemoteCmd cmd = RemoteCmd.newRequest(1);
-    cmd.setMsgType(chatRequestMsgType);
-    cmd.setBody(msg.toByteArray());
+    RemoteCmd cmd = RemoteCmd.newRequest(1, chatRequestMsgType, msg.toByteArray());
 
     client.onewayCall(String.format("%s:%d", host, port), cmd, 30000L);
 
@@ -163,9 +159,7 @@ public class RemoteServiceTest {
             .setValue("hello world")
             .build();
 
-    RemoteCmd cmd = RemoteCmd.newRequest(1);
-    cmd.setMsgType(chatRequestMsgType);
-    cmd.setBody(msg.toByteArray());
+    RemoteCmd cmd = RemoteCmd.newRequest(1, chatRequestMsgType, msg.toByteArray());
 
     client.asyncCall(
         String.format("%s:%d", host, port),
