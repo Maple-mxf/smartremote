@@ -1,6 +1,6 @@
 ##Tcp Remote Service Framework
 
-**How to create an tcp server. example 1 ** 
+** How to create an tcp server. example 1 ** 
 ```
 NettyServerConfig cfg = new NettyServerConfig();
     cfg.setListenPort(port);
@@ -21,7 +21,7 @@ NettyServerConfig cfg = new NettyServerConfig();
 Server default implement by netty framework. we can add ChannelEventListener on server object.
 ChannelEventListener can listen channel event. such as connect,active,close,exception.
 
-**Register service hand endpoint. example 2 ** 
+** Register service hand endpoint. example 2 ** 
 ```
     server.registerHandler(
         1,
@@ -44,7 +44,7 @@ ChannelEventListener can listen channel event. such as connect,active,close,exce
 tcp server can register multi endpoint. you can use unique code tag the endpoint handler, and you must
 be implement handler.
 
-**Start Tcp Server**
+** Start Tcp Server **
 ```
   server.start();
   
@@ -52,7 +52,7 @@ be implement handler.
   Thread.sleep(10000000);
 ```
 
-**Create a tcp client**
+** Create a tcp client **
 ```
 NettyClientConfig cfg = new NettyClientConfig();
     cfg.setHost(host);
@@ -61,20 +61,20 @@ NettyClientConfig cfg = new NettyClientConfig();
 ```
 
 
-**Start client connect tcp server**
+** Start client connect tcp server **
 
 ```
 client.start();
 ```
 
-**Select serialization method **
+** Select serialization method **
 - Protobuf (default)
 - Json
 
 Protobuf is default method of serialization.
 
 
-**How call the server**
+** How call the server **
 
 definition proto message
 ```
@@ -111,7 +111,7 @@ directory tree
     ├── RemoteCmdTest.java
     └── RemoteServiceTest.java
 ```
-**Call the server endpoint**
+** Call the server endpoint **
 ```
     RemoteCmd cmd = RemoteCmd.newRequest(1, chatRequestMsgType, msg.toByteArray());
 
